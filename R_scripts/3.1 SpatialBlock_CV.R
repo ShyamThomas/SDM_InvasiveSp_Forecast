@@ -5,9 +5,10 @@ library(spatstat)
 library(blockCV)
 library(sf)
 library(tidyverse)
+library(here)
 
+here()
 #### Plot distribution of all EWM data across Minnesota
-
 Minn.sf=read_sf(dsn=here("Data","GIS_Data"), layer="Minn.map")
 plot(Minn.sf$geometry)
 Minn.sf
@@ -243,148 +244,5 @@ AllSDMs_SpBlk_CV=bind_rows(GAM.minK_SpBlk_perf, GAM.bestK_SpBlk_perf,RF_SpBlk_pe
 
 write.table(AllSDMs_SpBlk_CV,"Results/AllSDMs_SpBlk_CV.txt", sep="\t")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-######################################################################################################
-############################# Previous GAM models that are NO more used ##########################
-######################################################################################################
-############## NOW WITH GAM, K=10
-
-AUC_all=NULL
-Acc_all=NULL
-Sens_all=NULL
-Spec_all=NULL
-
-for(Train.fileName in Train.fileNames) {
-  full.df = read.csv(paste("processed_data/TrainData/",Train.fileName, sep=""))
-  #sub.df=full.df
-  
-  folds=CheqBrd.trial.blocks$folds
-  testTable <- full.df
-  testTable$GAMpreds <- NA
-  
-  for(k in seq_len(length(folds))){
-    trainSet <- unlist(folds[[k]][1]) # training set indices
-    testSet <- unlist(folds[[k]][2]) # testing set indices
-    sample_sub=full.df[trainSet, ]
-    fm <- paste('s(', names(sample_sub[ -1 ]), ',k=10)', sep = "", collapse = ' + ')
-    fm <- as.formula(paste('EWMSTATUS ~', fm))
-    GAM_k10 = gam(fm,data=sample_sub, method="REML", family = "binomial")
-    testTable$GAMpreds[testSet] <- predict(GAM_k10, full.df[testSet, ], type = "response") # predict the test set
-    
-    precrec_obj <- evalmod(scores = testTable$GAMpreds[testSet], labels = testTable$EWMSTATUS[testSet],mode="aucroc")
-    AUC=precrec_obj$uaucs$aucs
-    AUC_all = rbind(AUC_all, data.frame(Train.fileName, k, AUC))
-    
-    preds.val=ifelse(testTable$GAMpreds[testSet] >0.5,1,0)
-    acc=confusionMatrix(as.factor(preds.val),as.factor(testTable$EWMSTATUS[testSet]))$overall[1]
-    Acc_all = rbind(Acc_all, data.frame(Train.fileName, k, acc))
-    sens=confusionMatrix(as.factor(preds.val),as.factor(testTable$EWMSTATUS[testSet]))$byClass[1]
-    Sens_all = rbind(Sens_all, data.frame(Train.fileName, k, sens))
-    spec=confusionMatrix(as.factor(preds.val),as.factor(testTable$EWMSTATUS[testSet]))$byClass[2]
-    Spec_all = rbind(Spec_all, data.frame(Train.fileName, k, spec))
-  }
-}
-
-AUC_all$Train.fileName=sub('EWM.train.data_', '',AUC_all$Train.fileName)
-AUC_all
-AUC_all$Train.fileName=sub('.WtrTemp.csv', '',AUC_all$Train.fileName)
-AUC_all
-
-MeanAUC_SpBlk_GAM.k10=AUC_all%>%group_by(Train.fileName)%>%summarise(
-  meanAUC=mean(AUC))
-MeanAcc_SpBlk_GAM.k10=Acc_all%>%group_by(Train.fileName)%>%summarise(
-  meanAcc=mean(acc))
-MeanSens_SpBlk_GAM.k10=Sens_all%>%group_by(Train.fileName)%>%summarise(
-  meanSens=mean(sens))
-MeanSpec_SpBlk_GAM.k10=Spec_all%>%group_by(Train.fileName)%>%summarise(
-  meanSpec=mean(spec))
-
-MeanAUC_SpBlk_GAM.k10
-MeanAcc_SpBlk_GAM.k10
-MeanSens_SpBlk_GAM.k10
-MeanSpec_SpBlk_GAM.k10
-
-write.table(MeanAUC_SpBlk_GAM.k10,"Results/AllGCMs_SpatialBlockCV_GAM.k10_AUCs.txt", sep="\t")
-
-############## NOW WITH GAM, K=3
-
-AUC_all=NULL
-Acc_all=NULL
-Sens_all=NULL
-Spec_all=NULL
-
-for(Train.fileName in Train.fileNames) {
-  full.df = read.csv(paste("processed_data/TrainData/",Train.fileName, sep=""))
-  #sub.df=full.df[,c(1,5,11,12)]
-  
-  folds=CheqBrd.trial.blocks$folds
-  testTable <- full.df
-  testTable$GAMk3preds <- NA
-  
-  for(k in seq_len(length(folds))){
-    trainSet <- unlist(folds[[k]][1]) # training set indices
-    testSet <- unlist(folds[[k]][2]) # testing set indices
-    sample_sub=full.df[trainSet, ]
-    fm <- paste('s(', names(sample_sub[ -1 ]), ',k=3)', sep = "", collapse = ' + ')
-    fm <- as.formula(paste('EWMSTATUS ~', fm))
-    GAM_k3 = gam(fm,data=sample_sub, method="REML", family = "binomial")
-    testTable$GAMk3preds[testSet] <- predict(GAM_k3, full.df[testSet, ], type = "response") # predict the test set
-    
-    precrec_obj <- evalmod(scores = testTable$GAMk3preds[testSet], labels = testTable$EWMSTATUS[testSet], mode = "aucroc")
-    AUC=precrec_obj$uaucs$aucs
-    AUC_all = rbind(AUC_all, data.frame(Train.fileName, k, AUC))
-    
-    preds.val=ifelse(testTable$GAMk3preds[testSet] >0.5,1,0)
-    acc=confusionMatrix(as.factor(preds.val),as.factor(testTable$EWMSTATUS[testSet]))$overall[1]
-    Acc_all = rbind(Acc_all, data.frame(Train.fileName, k, acc))
-    sens=confusionMatrix(as.factor(preds.val),as.factor(testTable$EWMSTATUS[testSet]))$byClass[1]
-    Sens_all = rbind(Sens_all, data.frame(Train.fileName, k, sens))
-    spec=confusionMatrix(as.factor(preds.val),as.factor(testTable$EWMSTATUS[testSet]))$byClass[2]
-    Spec_all = rbind(Spec_all, data.frame(Train.fileName, k, spec))
-  }
-}
-
-AUC_all$Train.fileName=sub('EWM.train.data_', '',AUC_all$Train.fileName)
-AUC_all
-AUC_all$Train.fileName=sub('.WtrTemp.csv', '',AUC_all$Train.fileName)
-AUC_all
-
-MeanAUC_SpBlk_GAM.k3=AUC_all%>%group_by(Train.fileName)%>%summarise(
-  meanAUC=mean(AUC))
-MeanAcc_SpBlk_GAM.k3=Acc_all%>%group_by(Train.fileName)%>%summarise(
-  meanAcc=mean(acc))
-MeanSens_SpBlk_GAM.k3=Sens_all%>%group_by(Train.fileName)%>%summarise(
-  meanSens=mean(sens))
-MeanSpec_SpBlk_GAM.k3=Spec_all%>%group_by(Train.fileName)%>%summarise(
-  meanSpec=mean(spec))
-
-MeanAUC_SpBlk_GAM.k3
-MeanAcc_SpBlk_GAM.k3
-MeanSens_SpBlk_GAM.k3
-MeanSpec_SpBlk_GAM.k3
-
-#######################
-##########################################################################################################
-##########################################################################################################
+######################################################################################################################
+######################################################################################################################
