@@ -4,7 +4,6 @@ library(ggplot2)
 library(randomForest)
 library(reshape2)
 
-
 ####################################################################################################################
 ######### R script: Predicting EWM occurrence with the trained Random forest (RF) & GAM SDMs for current   #########
 ########  and future water temperature conditions.                                                         #########
