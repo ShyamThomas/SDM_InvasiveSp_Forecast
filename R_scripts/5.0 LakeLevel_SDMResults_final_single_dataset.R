@@ -1,10 +1,10 @@
-library(tidyverse)
-library(sf)
-
 ####################################################################################################################
 ####### R script: Putting together all the SDM results with lake-specific covariates, and prediction domain #######
 ####### These scripts were used to put together the SINGLE LARGE DATASET needed by USpatial team @ UMN      #######
 ####################################################################################################################
+
+library(tidyverse)
+library(sf)
 here()
 
 ### 1. Get response data and predictors: two sets of predictors for water GDD - present and future for 5 GCMs
