@@ -119,6 +119,12 @@ for(Train.fileName in Train.fileNames) {
   save(gam_s3.r.t3, file=paste("Data/TrainData/", sub('....$','',Train.fileName), "GAM_s3.r.t3.Rdata", sep=""))
 }
 
+load.Rdata("Data/TrainData/EWM.train.data_MIROC5.WtrTempGAM_s3.r.t3.Rdata", "MIROC5.GAM_minK.model")
+gam.check(MIROC5.GAM_minK.model)
+
+load.Rdata("Data/TrainData/EWM.train.data_MRI.WtrTempGAM_s3.r.t3.Rdata", "MRI.GAM_minK.model")
+gam.check(MRI.GAM_minK.model)
+
 load.Rdata("Data/TrainData/EWM.train.data_ACCESS.WtrTempGAM_s3.r.t3.Rdata", "ACCESS.GAM_minK.model")
 gam.check(ACCESS.GAM_minK.model)
 
@@ -127,12 +133,6 @@ gam.check(GFDL.GAM_minK.model)
 
 load.Rdata("Data/TrainData/EWM.train.data_IPSL.WtrTempGAM_s3.r.t3.Rdata", "IPSL.GAM_minK.model")
 gam.check(IPSL.GAM_minK.model)
-
-load.Rdata("Data/TrainData/EWM.train.data_MIROC5.WtrTempGAM_s3.r.t3.Rdata", "MIROC5.GAM_minK.model")
-gam.check(MIROC5.GAM_minK.model)
-
-load.Rdata("Data/TrainData/EWM.train.data_MRI.WtrTempGAM_s3.r.t3.Rdata", "MRI.GAM_minK.model")
-gam.check(MRI.GAM_minK.model)
 
 #### The tuned k values that where p-values of gam check is less than 0.05
 
@@ -146,6 +146,14 @@ for(Train.fileName in Train.fileNames) {
   save(gam_s3.r.t7, file=paste("Data/TrainData/", sub('....$','',Train.fileName), "GAM_s3.r.t20.Rdata", sep=""))
 }
 
+load.Rdata("Data/TrainData/EWM.train.data_MIROC5.WtrTempGAM_s3.r.t7.Rdata", "MIROC5.GAM_bestK.model")
+gam.check(MIROC5.GAM_bestK.model)
+plot.gam(MIROC5.GAM_bestK.model)
+
+load.Rdata("Data/TrainData/EWM.train.data_MRI.WtrTempGAM_s3.r.t7.Rdata", "MRI.GAM_bestK.model")
+gam.check(MRI.GAM_bestK.model)
+plot.gam(MRI.GAM_bestK.model)
+
 load.Rdata("Data/TrainData/EWM.train.data_ACCESS.WtrTempGAM_s3.r.t7.Rdata", "ACCESS.GAM_bestK.model")
 gam.check(ACCESS.GAM_bestK.model)
 plot.gam(ACCESS.GAM_bestK.model)
@@ -157,16 +165,6 @@ plot.gam(GFDL.GAM_bestK.model)
 load.Rdata("Data/TrainData/EWM.train.data_IPSL.WtrTempGAM_s3.r.t7.Rdata", "IPSL.GAM_bestK.model")
 gam.check(IPSL.GAM_bestK.model)
 plot.gam(IPSL.GAM_bestK.model)
-
-load.Rdata("Data/TrainData/EWM.train.data_MIROC5.WtrTempGAM_s3.r.t7.Rdata", "MIROC5.GAM_bestK.model")
-gam.check(MIROC5.GAM_bestK.model)
-plot.gam(MIROC5.GAM_bestK.model)
-
-load.Rdata("Data/TrainData/EWM.train.data_MRI.WtrTempGAM_s3.r.t7.Rdata", "MRI.GAM_bestK.model")
-gam.check(MRI.GAM_bestK.model)
-plot.gam(MRI.GAM_bestK.model)
-
-
 
 ##########################################################################################################
 ####### 5-fold cross validation based on the above min K and K-optimized GAMs
