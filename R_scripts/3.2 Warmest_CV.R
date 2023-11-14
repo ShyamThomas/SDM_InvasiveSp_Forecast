@@ -8,7 +8,7 @@ library(here)
 #################################################################################################################
 ######################## INDEPENDENT VALIDATION, 90% AND HIGHER GDD VALUES BLOCKED ############################
 #################################################################################################################
-
+here()
 Train.fileNames = list.files(path=here("Data","TrainData"),pattern=".csv")
 Train.fileNames
 
@@ -169,7 +169,7 @@ write.table(AllSDMs_Warmest_CV,"Results/AllSDMs_Warmest_CV.txt", sep="\t")
 
 ######################################################################################################
 ######################################################################################################
-##### Putting it all together into a table
+##### Putting it all cross-validation tests together into a table
 here()
 AUC.fileNames = list.files(pattern="CV.txt", recursive = TRUE)
 AUC.fileNames
