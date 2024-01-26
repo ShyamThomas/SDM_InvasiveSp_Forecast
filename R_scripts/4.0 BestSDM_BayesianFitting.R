@@ -89,6 +89,7 @@ FutTempAvgs
 Fut.Brm.TestData=bind_cols(Access.TrainData[,-4],FutTempAvgs[,2])
 colnames(Fut.Brm.TestData)[2:4]=c("avgSecchi", "avgRoads", "avgGDD")
 Fut.Brm.TestData
+write_csv(Fut.Brm.Preds,here("Results","Fut.Brm.Preds.csv"))
 
 fut.ewm.epreds=posterior_epred(ewm.brm.trial, newdata =Fut.Brm.TestData[,-1], draw_ids =  c(1001:1200))
 str(fut.ewm.epreds)
