@@ -7,11 +7,11 @@ library(sf)
 library(here)
 
 ####################################################################################################################
-######### R script: Developing a Bayesian version of the best-fitting SDM (GAM, k=7) to predict 
-######### point estimates of EWM risk with a measure of uncertainty.                                                            #########
+######### R script: Developing a Bayesian version of the best-fitting SDM (GAM, k=7) to predict            #########
+######### point estimates of EWM risk with a measure of uncertainty.                                       #########
 ####################################################################################################################
-here()
 
+#### Combine all the training data files
 Data_Combined = list.files(path=here("Data","TrainData"),pattern=".csv", full.names = TRUE) %>%
   lapply(read_csv)%>%
   bind_rows(id=NULL)%>%
@@ -19,21 +19,21 @@ Data_Combined = list.files(path=here("Data","TrainData"),pattern=".csv", full.na
 
 Data_Combined%>%View()
 
-
+#### Combine and summarize all the temp data from different GCMs
 TempAvgs=Data_Combined%>%group_by(Id)%>%summarise(
-avgGDD=mean(c_across(ACCESS.avg.ann.gdd:MRI.avg.ann.gdd), na.rm=TRUE),
-minGDD=min(c_across(ACCESS.avg.ann.gdd:MRI.avg.ann.gdd), na.rm=TRUE),
-maxGDD=max(c_across(ACCESS.avg.ann.gdd:MRI.avg.ann.gdd), na.rm=TRUE)
+          avgGDD=mean(c_across(ACCESS.avg.ann.gdd:MRI.avg.ann.gdd), na.rm=TRUE),
+          minGDD=min(c_across(ACCESS.avg.ann.gdd:MRI.avg.ann.gdd), na.rm=TRUE),
+          maxGDD=max(c_across(ACCESS.avg.ann.gdd:MRI.avg.ann.gdd), na.rm=TRUE)
 )%>%ungroup()
 
 TempAvgs
 
 Access.TrainData=read_csv(here("Data","TrainData", "EWM.train.data_ACCESS.WtrTemp.csv"))
 colnames(Access.TrainData)
-Avg.CurrTemp.data=bind_cols(Access.TrainData[,-4],TempAvgs[,2:4])
+Avg.CurrTemp.data=bind_cols(Access.TrainData[,-4],TempAvgs[,2:4]) ### replace it with the average measure across all GCMs
 Avg.CurrTemp.data
 
-### We need only 3 predictors
+### We need only the 3 predictors
 Curr.Brm.TrainData=Avg.CurrTemp.data[,c(1:4)]
 Curr.Brm.TrainData
 
@@ -57,8 +57,8 @@ curr.ewm.epreds=posterior_epred(ewm.brm.trial, draw_ids = c(1001:1200))
 str(curr.ewm.epreds)
 head(curr.ewm.epreds)
 
+### Summarize the posterior predictions to get the mean and variance of the predictions
 library(matrixStats)
-
 avg.curr.preds=colMeans(curr.ewm.epreds)
 sd.curr.preds=colSds(curr.ewm.epreds)
 var.curr.preds=colVars(curr.ewm.epreds)
@@ -73,7 +73,7 @@ EWM_GeoCoord.Index
 Curr.Brm.Preds_EWMGeoIndex=left_join(Curr.Brm.Preds, EWM_GeoCoord.Index, by="DOWLKNUM")
 Curr.Brm.Preds_EWMGeoIndex
 
-
+#### Repeat the above steps with test datafiles and future temperature data
 FutData_Combined = list.files(path= here("Data","TestData", "ForecastData"),pattern=".csv", 
                               full.names = TRUE) %>%
                                 lapply(read_csv)%>% bind_rows(id=NULL)%>%
@@ -89,12 +89,13 @@ FutTempAvgs
 Fut.Brm.TestData=bind_cols(Access.TrainData[,-4],FutTempAvgs[,2])
 colnames(Fut.Brm.TestData)[2:4]=c("avgSecchi", "avgRoads", "avgGDD")
 Fut.Brm.TestData
-write_csv(Fut.Brm.Preds,here("Results","Fut.Brm.Preds.csv"))
 
+### Make future predictions based on the future temps
 fut.ewm.epreds=posterior_epred(ewm.brm.trial, newdata =Fut.Brm.TestData[,-1], draw_ids =  c(1001:1200))
 str(fut.ewm.epreds)
 head(fut.ewm.epreds)
 
+### Summarize the predictions
 med.fut.preds=colMedians(fut.ewm.epreds)
 sd.fut.preds=colSds(fut.ewm.epreds)
 var.fut.preds=colVars(fut.ewm.epreds)
@@ -107,12 +108,14 @@ Fut.Brm.Preds=Fut.Brm.TestData%>%mutate(mean.fut.preds=med.fut.preds,sd.fut.pred
                                         min.fut.preds=min.fut.preds,max.fut.preds=max.fut.preds,
                                         var.fut.preds=var.fut.preds, DOWLKNUM=EWM.GCMs.data$DOWLKNUM)
 Fut.Brm.Preds
+write_csv(Fut.Brm.Preds,here("Results","Fut.Brm.Preds.csv"))
+
 EWM_GeoCoord.Index=EWM.GCMs.data[,1:5]
 Fut.Brm.Preds_EWMGeoIndex=left_join(Fut.Brm.Preds, EWM_GeoCoord.Index, by="DOWLKNUM")
 Fut.Brm.Preds_EWMGeoIndex
 
 
-#### Finally map the data
+#### Finally the steps to map the predictions and data
 Curr.Brm.Preds_EWMGeoIndex.sf=st_as_sf(Curr.Brm.Preds_EWMGeoIndex,coords=c("LON", "LAT"),crs=32615)
 Curr.Brm.Preds_EWMGeoIndex.sf
 
