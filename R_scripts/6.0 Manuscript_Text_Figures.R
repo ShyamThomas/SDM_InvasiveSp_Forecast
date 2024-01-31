@@ -5,6 +5,9 @@ library(gratia)
 library(mgcv)
 library(cowplot)
 library(here)
+library(miceadds)
+library(randomForest)
+library(pdp)
 
 
 ########################################################################################################
@@ -43,11 +46,11 @@ SDMWise=EWM.clim.chng.preds2%>%ggplot(aes(x = PERIOD, y = preds, fill = GCM)) +
         theme(text = element_text(size=12))
 
 SDMWise+scale_fill_viridis_d(option="inferno")
-ggsave("Mnspt.Text.Fig1.png", path="Figures/", device="png",width=9, height=4.5, dpi=600)
+ggsave("Mnspt.Text.Fig1.tif", path="Figures/", device="tiff",width=9, height=4.5, dpi=600)
 
 ####################################################################################
 ### Figure 2: Arrow plots showing change in risk over time
-EWM.clmchng_data ### from Line 6 above
+EWM.clmchng_data ### from above
 ### Estimate change in  mean risk predictions
 EWM.climchng.MeanPredsBySDM.Year=EWM.clmchng_data%>%select(c(1,3,4),ends_with("Pred"))%>%rowwise%>%mutate(
   MeanGAM_minK_Curr=mean(c_across(ends_with("GAMminK.CurrPred"))),
@@ -94,12 +97,12 @@ GAM_minK
 load.Rdata("Data/TrainData/EWM.train.data_MRI.WtrTempGAM_s3.r.t3.Rdata", "MRI.GAM_minK.model")
 
 gdd.resp_mink=draw(MRI.GAM_minK.model, residuals = FALSE, select=2, rug=FALSE, ci_alpha = 0.00, title="")
-GAM.minK.GDD_respcurv=gdd.resp_mink+xlab("GDD")+ylab("EWM")+theme_classic(24)+ggtitle("")+theme(
+GAM.minK.GDD_respcurv=gdd.resp_mink+xlab("GDD")+ylab(bquote(italic("M. spicatum")))+theme_classic(36)+ggtitle("")+theme(
 axis.text.x = element_blank(),
 axis.text.y = element_blank(),
 axis.ticks = element_blank())
-GAM.minK.GDD_respcurv
-ggsave("GDD.resp_minK.png", path="Figures/", device="png",width = 12, height = 8, dpi=1200)
+GAM.minK.GDD_respcurv+geom_line(size=2)
+ggsave("GDD.resp_minK.tif", path="Figures/", device="tiff",width = 6, height = 6, dpi=600)
 
 
 ### Plot for GAM bestK s3.r.t7
@@ -114,15 +117,13 @@ GAM_bestK
 
 ### GAM bestK (s3.r.t7) response curve inset plot
 load.Rdata("Data/TrainData/EWM.train.data_MRI.WtrTempGAM_s3.r.t7.Rdata", "ACCESS.GAM_bestK.model")
-
 gam.bestk=draw(ACCESS.GAM_bestK.model, residuals = FALSE, select=2, rug=FALSE, ci_alpha = 0.00, title="")
-GAM.bestK.GDD_respcurv=gam.bestk+xlab("GDD")+ylab("EWM")+theme_classic(24)+ggtitle("")+theme(
+GAM.bestK.GDD_respcurv=gam.bestk+xlab("GDD")+ylab(bquote(italic("M. spicatum")))+theme_classic(24)+ggtitle("")+theme(
   axis.text.x = element_blank(),
   axis.text.y = element_blank(),
   axis.ticks = element_blank())
-GAM.bestK.GDD_respcurv
-
-ggsave("GGDD.resp_bestK.png", path="Figures/", device="png",width = 12, height = 8, dpi=1200)
+GAM.bestK.GDD_respcurv+geom_line(size=2)
+ggsave("GDD.resp_bestK.tif", path="Figures/", device="tiff",width = 6, height = 6, dpi=600)
 
 ### Plot for Random forest plot
 RF=ggplot()+
@@ -134,18 +135,17 @@ yend=MeanRF_Curr+RF_Change,color=RF_Change),arrow=arrow(), size=0.5) +
   theme(legend.position = c(0.06,0.8))
 
 ### Random forest response curve inset plot
+EWM.train.data_ACCESS.WtrTemp=read_csv("Data/TrainData/EWM.train.data_ACCESS.WtrTemp.csv")
+EWM.train.data_ACCESS.WtrTemp
 rf=randomForest(EWM.train.data_ACCESS.WtrTemp[,c(2:4)], EWM.train.data_ACCESS.WtrTemp$EWMSTATUS,importance=TRUE, ntree=5000, type="regression")
 par.RF= pdp::partial(rf, pred.var = c("ACCESS.avg.ann.gdd"))
 
-RF.GDD_respcurv=autoplot(par.RF)+xlab("GDD")+ylab("EWM")+theme_classic(24)+theme(
+RF.GDD_respcurv=autoplot(par.RF)+xlab("GDD")+ylab(bquote(italic("M. spicatum")))+theme_classic(24)+theme(
 axis.text.x = element_blank(),
 axis.text.y = element_blank(),
 axis.ticks = element_blank())
-
-rf_change_inset=ggdraw(RF +ggtitle("c) Random forest"))+
-draw_plot(RF.GDD_respcurv, .77, .09, .2, .2, scale=1)
-
-ggsave("RF_Change_wInset.png", path="Figures/", device="png",width = 12, height = 8, dpi=1200)
+RF.GDD_respcurv+geom_line(size=2)
+ggsave("GDD.resp_RF.tif", path="Figures/", device="tiff",width = 6, height = 6, dpi=600)
 
 ### Making one single multi-panel plot with a common legend
 ### Pivot the table from wide to long
