@@ -26,7 +26,8 @@ EWM.climchng.preds_wide=EWM.clmchng_data%>%select(c(1,3,4),ends_with("Pred"))%>%
 EWM.clim.chng.preds=EWM.climchng.preds_wide%>%separate(models, c("GCM","SDM","PERIOD"))
 EWM.clim.chng.preds
 
-EWM.clim.chng.preds2=EWM.clim.chng.preds%>%mutate(SDM=recode(SDM, GAMminK="GAM (k=3)",GAMbestK="GAM (k=7)", RF="Random Forest"),
+EWM.clim.chng.preds2=EWM.clim.chng.preds%>%mutate(SDM=recode(SDM, GAMminK="GAM (k=3)",GAMbestK="GAM (k=7)", 
+                                                    RF="Random Forest"),
                                             PERIOD=recode(PERIOD,CurrPred="Current", FutrPred="Future"))
 EWM.clim.chng.preds2
 
@@ -183,7 +184,7 @@ AllModel_ChangeinRisk=ggplot()+
 AllModel_ChangeinRisk
 ggsave("AllChangeInRisk.tif", path="Figures/", device="tiff",width = 18, height = 12, dpi=600, units="cm")
 
-####################################################################################
+##################################################################################################################################
 ### Figure 3: Final EWM invasion risk predictions and uncertainty maps, analog/non-analog domains
 EWM.clim.chng.PredsChange ### from line 100 above
 EWM.clim.chng.PredsChange=EWM.climchng.MeanPredsBySDM.Year%>%select(c(1:3),starts_with("Mean"))%>%mutate(
@@ -226,9 +227,8 @@ Fig.3a=ggplot(data=Minn.sf)+geom_sf()+
     scale_color_viridis_d(option="turbo",alpha = 0.5)+theme(legend.title = element_blank())+
     theme(legend.position = c(0.85,0.4))+theme(text=element_text(size=12))+
       ggtitle("a) Future invasion risk trajectory")
-agg_png("Figures/Mnspt.Text.Fig3a.png", width = 9, height = 4.5, units = "in", res = 600, scaling = 0.75)
 Fig.3a
-dev.off()
+ggsave("Mnspt.Text.Fig3a.tif", path="Figures/", device="tiff",width=14, height=20,units="cm", dpi=900)
 
 ### Subset bayesian predictions from the best fitting GAM k=10 model 
 EWM.futrpreds.bayes.GAM_bestK=EWM.clmchng_data%>%select(1,3,4,56,57)%>%
@@ -246,10 +246,8 @@ Fig.3b=ggplot(data=Minn.sf)+geom_sf()+
           guides(size=guide_legend(override.aes=list(shape=1,size=c(2,4,6,8))))+
           theme(legend.position = c(0.85,0.375))+theme(text=element_text(size=12))+
           ggtitle("b) Future invasion risk predictions")
-
-agg_png("Figures/Mnspt.Text.Fig3b.png", width = 9, height = 4.5, units = "in", res = 600, scaling = 0.75)
 Fig.3b
-dev.off()
+ggsave("Mnspt.Text.Fig3b.tif", path="Figures/", device="tiff",width=14, height=20,units="cm", dpi=900)
 
 ### Subset data to identify the temperature analog and non-analog domains
 EWM.domains=EWM.climchng.MeanTempByYear%>%select(1:3,14,15)%>%
@@ -262,10 +260,8 @@ Fig.3c=ggplot(data=Minn.sf)+geom_sf()+
           geom_sf(data=EWM.domains.sf.WGS, aes(color=Domain,shape=Domain), cex=4)+theme_light()+
           scale_color_viridis_d(option="turbo",alpha = 0.5)+theme(legend.title = element_blank())+
           theme(legend.position = c(0.8,0.45))+theme(text=element_text(size=12))+ggtitle("c) Future temperature domains")
-agg_png("Figures/Mnspt.Text.Fig3c.png", width = 9, height = 4.5, units = "in", res = 600, scaling = 0.75)
 Fig.3c
-dev.off()
-
+ggsave("Mnspt.Text.Fig3c.tif", path="Figures/", device="tiff",width=14, height=20,units="cm", dpi=900)
 
 Fig.3d=Fut.Brm.Preds%>%ggplot(.,)+geom_point(aes(avgGDD,mean.fut.preds, size=var.fut.preds), alpha=0.25)+
 geom_smooth(aes(x=avgGDD,y=mean.fut.preds), method="loess", span=0.3,se=FALSE, col="black", linewidth=0.5)+
@@ -274,10 +270,8 @@ geom_smooth(aes(x= avgGDD, y=max.fut.preds), method="loess", span=0.3,se=FALSE, 
 geom_vline(xintercept = 2200, lty=3, linewidth=1)+xlab("Growing degree days (GDD)")+
 ylab("Future M. spicatum habitat suitability")+labs(size="Variance")+theme(legend.position = c(0.85,0.2))+
 theme(text=element_text(size=12))+ggtitle("d) Predicted response curve")
-
-agg_png("Figures/Mnspt.Text.Fig3d.png", width = 6, height = 4, units = "in", res = 600, scaling = 0.75)
 Fig.3d
-dev.off()
+ggsave("Mnspt.Text.Fig3d.tif", path="Figures/", device="tiff",width=20, height=14,units="cm", dpi=900)
 
 ### The numbers of certainty and uncertainty in the change in suitability
 IncreasersUncertain_Lakes_sf_WGS_recoded%>%st_drop_geometry()
