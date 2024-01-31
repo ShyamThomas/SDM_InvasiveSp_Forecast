@@ -152,7 +152,6 @@ ggsave("GDD.resp_RF.tif", path="Figures/", device="tiff",width = 6, height = 6, 
 EWM.clim.chng.Preds.Temp.Change2=EWM.clim.chng.Preds.Temp.Change%>%
   pivot_longer(cols= c(4,6,8), names_to = 'Curr_Models' , values_to = 'Curr.Preds')
 t1=EWM.clim.chng.Preds.Temp.Change2[,c(1:3,10:14)]
-
 EWM.clim.chng.Preds.Temp.Change3=EWM.clim.chng.Preds.Temp.Change%>%
   pivot_longer(cols= c(5,7,9), names_to = 'Futr_Models' , values_to = 'Futr.Preds')
 t2=EWM.clim.chng.Preds.Temp.Change3[,c(1,13,14)]
@@ -166,23 +165,23 @@ final_table=t1%>%mutate(Model= recode(Curr_Models, MeanGAM_minK_Curr = "GAM (k=3
                                       MeanRF_Curr = "Random Forest" ))
 final_table%>%View()
 
-library(ragg)
-agg_png("Figures/Mnspt.Text.Fig2.png", width = 18, height = 9, units = "in", res = 600, scaling = 2)
-
 ### the final multi-panel plot using the final table in long format
-ggplot()+
-geom_segment(data=final_table, aes(x=MeanTemp_Curr, y=Curr.Preds, xend=MeanTemp_Curr+TempDiff,
-yend=Curr.Preds+Chng.preds,color=Chng.preds), arrow=arrow(), size=0.5) +
-geom_point(data=final_table, mapping=aes(x=MeanTemp_Curr, y=Curr.Preds), size=1, shape=21, fill="white")+
-scale_color_viridis_c(limits = c(-0.4, 0.9),
-breaks = c(-0.4,0.00, 0.50, 0.9),
-labels = c(-0.4,0.00, 0.50, 0.9))+
-xlab("Annual growing degree days (GDD)")+ylab("M. spicatum habitat suitability")+
-  labs(colour="Change\nin risk")+geom_vline(xintercept = 2200, lty=2)+theme(text=element_text(size=12))+
-    facet_wrap(~Model)+theme_bw()+
-    theme(legend.position="right", legend.box.background = element_rect(color = "black"))
+AllModel_ChangeinRisk=ggplot()+
+            geom_segment(data=final_table, aes(x=MeanTemp_Curr, y=Curr.Preds, 
+            xend=MeanTemp_Curr+TempDiff,yend=Curr.Preds+Chng.preds,color=Chng.preds), 
+            arrow=arrow(), size=0.5) +
+              geom_point(data=final_table, mapping=aes(x=MeanTemp_Curr, y=Curr.Preds), size=1, shape=21, fill="white")+
+                scale_color_viridis_c(limits = c(-0.4, 0.9),
+                  breaks = c(-0.4,0.00, 0.50, 0.9),
+                  labels = c(-0.4,0.00, 0.50, 0.9))+
+                    xlab("Annual growing degree days (GDD)")+ylab(bquote(italic("M. spicatum ")*"habitat suitability"))+
+                    labs(colour="Change\nin risk")+geom_vline(xintercept = 2200, lty=2)+
+                    theme(text=element_text(size=12))+
+                      facet_wrap(~Model)+theme_bw()+
+                      theme(legend.position="right", legend.box.background = element_rect(color = "black"))
 
-dev.off()
+AllModel_ChangeinRisk
+ggsave("AllChangeInRisk.tif", path="Figures/", device="tiff",width = 18, height = 12, dpi=600, units="cm")
 
 ####################################################################################
 ### Figure 3: Final EWM invasion risk predictions and uncertainty maps, analog/non-analog domains
